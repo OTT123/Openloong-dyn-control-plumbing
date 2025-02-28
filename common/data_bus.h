@@ -22,55 +22,70 @@ struct DataBus
 
     // motors, sensors and states feedback
     double rpy[3];
-    double fL[3];
-    double fR[3];
+    // double fL[3];
+    // double fR[3];
+    double f_FL[3], f_FR[3], f_RL[3], f_RF[3];  // 四足的足端力 事实上这个项目的力都是估计出来的，没有力传感器，一直是0
     double basePos[3];
     double baseLinVel[3]; // velocity of the basePos
     double baseAcc[3];    // baseAcc of the base link
-    double baseAngVel[3]; // angular velocity of the base link
+    double baseAngVel[3]; // angular velocity of the base link in body frame
     std::vector<double> motors_pos_cur;
     std::vector<double> motors_vel_cur;
     std::vector<double> motors_tor_cur;
-    Eigen::VectorXd FL_est, FR_est;
+    // Eigen::VectorXd FL_est, FR_est;
+    Eigen::VectorXd FL_Fest, FR_Fest, RL_Fest, RR_Fest; // 四足的足端力估计
     bool isdqIni;
 
-    // PVT controls
+    //////////////////
+    // PVT controls //
+    //////////////////
     std::vector<double> motors_pos_des;
     std::vector<double> motors_vel_des;
     std::vector<double> motors_tor_des;
     std::vector<double> motors_tor_out;
 
-    // states and key variables
+    //////////////////////////////
+    // states and key variables //
+    //////////////////////////////
+    // joint space
     Eigen::VectorXd q, dq, ddq;
     Eigen::VectorXd qOld;
-    Eigen::MatrixXd J_base, J_l, J_r, J_hd_l, J_hd_r, J_hip_link;
-    Eigen::MatrixXd dJ_base, dJ_l, dJ_r, dJ_hd_l, dJ_hd_r;
-    Eigen::MatrixXd Jcom_W; // jacobian of CoM, in world frame
-    Eigen::Vector3d pCoM_W;
-    Eigen::Vector3d fe_r_pos_W, fe_l_pos_W, base_pos, base_vel;
-    Eigen::Matrix3d fe_r_rot_W, fe_l_rot_W, base_rot; // in world frame
-    Eigen::Vector3d fe_r_pos_L, fe_l_pos_L;           // in Body frame
-    Eigen::Vector3d fe_r_vel_L, fe_l_vel_L;           // linear velocity in Body frame
-    Eigen::Vector3d hip_link_pos;
-    Eigen::Vector3d hip_r_pos_L, hip_l_pos_L;
-    Eigen::Vector3d hip_r_pos_W, hip_l_pos_W;
-    Eigen::Matrix3d fe_r_rot_L, fe_l_rot_L;
-    Eigen::Matrix3d hip_link_rot;
-    Eigen::Vector3d fe_r_pos_L_cmd, fe_l_pos_L_cmd;
-    Eigen::Matrix3d fe_r_rot_L_cmd, fe_l_rot_L_cmd;
-
-    Eigen::Vector3d hd_r_pos_W, hd_l_pos_W; // in world frame
-    Eigen::Matrix3d hd_r_rot_W, hd_l_rot_W;
-    Eigen::Vector3d hd_r_pos_L, hd_l_pos_L; // in body frame
-    Eigen::Matrix3d hd_r_rot_L, hd_l_rot_L;
     Eigen::VectorXd qCmd, dqCmd;
     Eigen::VectorXd tauJointCmd;
+    // work space
+    Eigen::Vector3d FL_foot_pos_W, FR_foot_pos_W, RL_foot_pos_W, RR_foot_pos_W, base_pos, base_vel;
+    Eigen::Vector3d FL_foot_pos_L, FR_foot_pos_L, RL_foot_pos_L, RR_foot_pos_L;             // in Body frame (base)
+    Eigen::Matrix3d FL_foot_rot_W, FR_foot_rot_W, RL_foot_rot_W, RR_foot_rot_W, base_rot;   // in world frame
+    Eigen::Matrix3d FL_hip_rot_W, FR_hip_rot_W, RL_hip_rot_W, RR_hip_rot_W;
+    Eigen::Matrix3d FL_foot_rot_L, FR_foot_rot_L, RL_foot_rot_L, RR_foot_rot_L;             // in Body frame (base)
+    Eigen::Vector3d FL_foot_vel_L, FR_foot_vel_L, RL_foot_vel_L, RR_foot_vel_L;             // linear velocity in Body (base) frame
+    Eigen::Vector3d FL_hip_pos_L, FR_hip_pos_L, RL_hip_pos_L, RR_hip_pos_L;                 // in Body frame (base)
+    Eigen::Vector3d FL_hip_pos_W, FR_hip_pos_W, RL_hip_pos_W, RR_hip_pos_W;
+    Eigen::Vector3d FL_foot_pos_L_cmd, FR_foot_pos_L_cmd, RL_foot_pos_L_cmd, RR_foot_pos_L_cmd;
+    Eigen::Matrix3d FL_foot_rot_L_cmd, FR_foot_rot_L_cmd, RL_foot_rot_L_cmd, RR_foot_rot_L_cmd;
+    // Eigen::Vector3d hip_link_pos;
+    // Eigen::Matrix3d hip_link_rot;
+    // kin and dyn
+    Eigen::MatrixXd J_base, J_FL_foot, J_FR_foot, J_RL_foot, J_RR_foot;
+    Eigen::MatrixXd J_FL_hip, J_FR_hip, J_RL_hip, J_RR_hip;
+    Eigen::MatrixXd dJ_base, dJ_FL_foot, dJ_FR_foot, dJ_RL_foot, dJ_RR_foot;
+    Eigen::MatrixXd Jcom_W; // jacobian of CoM, in world frame
+    Eigen::Vector3d pCoM_W; // 质心坐标 in world frame
+
     Eigen::MatrixXd dyn_M, dyn_M_inv, dyn_C, dyn_Ag, dyn_dAg;
     Eigen::VectorXd dyn_G, dyn_Non;
     Eigen::Vector3d base_omega_L, base_omega_W, base_rpy;
 
-    Eigen::Vector3d slop;
+    // ？
+    Eigen::Vector3d slop;   
     Eigen::Matrix<double, 3, 3> inertia;
+
+
+
+
+
+
+
 
     // state EST
     Eigen::Matrix<double, 3, 1> base_pos_est, base_vel_est;
@@ -173,8 +188,10 @@ struct DataBus
         qCmd = Eigen::VectorXd::Zero(model_nv + 1);
         dqCmd = Eigen::VectorXd::Zero(model_nv);
         tauJointCmd = Eigen::VectorXd::Zero(model_nv - 6);
-        FL_est = Eigen::VectorXd::Zero(6);
-        FR_est = Eigen::VectorXd::Zero(6);
+        FL_Fest = Eigen::VectorXd::Zero(6);
+        FR_Fest = Eigen::VectorXd::Zero(6);
+        RL_Fest = Eigen::VectorXd::Zero(6);
+        RR_Fest = Eigen::VectorXd::Zero(6);
         Xd = Eigen::VectorXd::Zero(12 * 10);
         X_cur = Eigen::VectorXd::Zero(12);
         X_cal = Eigen::VectorXd::Zero(12);

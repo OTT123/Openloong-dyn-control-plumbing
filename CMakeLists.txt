@@ -40,10 +40,10 @@ endif()
 link_directories(${allLib})
 
 file(GLOB C_SOURCES *.c)
-file(GLOB CPP_SOURCES *.cpp algorithm/*.cpp common/*.cpp math/*.cpp sim_interface/*.cpp)
+file(GLOB CPP_SOURCES *.cpp common/*.cpp math/*.cpp sim_interface/*.cpp algorithm/pino_kin_dyn.cpp)
 file(GLOB HEADER_FILES *.h algorithm/*.h common/*.h math/*.h sim_interface/*.h)
 set(SOURCES ${C_SOURCES} ${CPP_SOURCES} ${HEADER_FILES})
-
+message(${CPP_SOURCES})
 #链接库
 set(corLibs pinocchio urdfdom_model tinyxml console_bridge jsoncpp quill qpOASES)
 set(simLibs glfw3)#mujoco区分x86/arm的方式不一样，在上面按link目录区分
