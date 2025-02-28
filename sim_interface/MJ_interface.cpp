@@ -30,7 +30,8 @@ MJ_Interface::MJ_Interface(mjModel *mj_modelIn, mjData *mj_dataIn)
         jntId_qpos[i] = mj_model->jnt_qposadr[tmpId];
         jntId_qvel[i] = mj_model->jnt_dofadr[tmpId];
         std::string motorName = JointName[i];
-        motorName = "M" + motorName.substr(1);
+        // motorName = "M" + motorName.substr(1);
+        motorName = MotorName[i];
         tmpId = mj_name2id(mj_model, mjOBJ_ACTUATOR, motorName.c_str());
         if (tmpId == -1)
         {
