@@ -50,7 +50,9 @@ public:
     pinocchio::JointIndex FL_hip_joint_, FR_hip_joint_, RL_hip_joint_, RR_hip_joint_;
     pinocchio::JointIndex FL_calf_joint_fixed_, FR_calf_joint_fixed_, RL_calf_joint_fixed_, RR_calf_joint_fixed_;
     pinocchio::JointIndex FL_hip_joint_fixed_, FR_hip_joint_fixed_, RL_hip_joint_fixed_, RR_hip_joint_fixed_;
+
     pinocchio::FrameIndex FL_foot_frame_, FR_foot_frame_, RL_foot_frame_, RR_foot_frame_;
+    pinocchio::FrameIndex FL_foot_frame_fixed_, FR_foot_frame_fixed_, RL_foot_frame_fixed_, RR_foot_frame_fixed_;
 
     Eigen::Matrix<double, 6, -1> J_FL_foot_, J_FR_foot_, J_RL_foot_, J_RR_foot_, J_base_, J_FL_hip_, J_FR_hip_, J_RL_hip_, J_RR_hip_;
     Eigen::Matrix<double, 6, -1> dJ_FL_foot_, dJ_FR_foot_, dJ_RL_foot_, dJ_RR_foot_, dJ_base_, dJ_FL_hip_, dJ_FR_hip_, dJ_RL_hip_, dJ_RR_hip_;
@@ -91,6 +93,7 @@ public:
     void computeJ_dJ();
     void computeDyn();
     IkRes computeInK_Leg(const Eigen::Matrix3d &Rdes_FL, const Eigen::Vector3d &Pdes_FL, const Eigen::Matrix3d &Rdes_FR, const Eigen::Vector3d &Pdes_FR, const Eigen::Matrix3d &Rdes_RL, const Eigen::Vector3d &Pdes_RL, const Eigen::Matrix3d &Rdes_RR, const Eigen::Vector3d &Pdes_RR);
+    IkRes computeInK_SingleLeg(const Eigen::Matrix3d &Rdes, const Eigen::Vector3d &Pdes, const legIdx &leg_idx);
     IkRes computeInK_Hand(const Eigen::Matrix3d &Rdes_L, const Eigen::Vector3d &Pdes_L, const Eigen::Matrix3d &Rdes_R, const Eigen::Vector3d &Pdes_R);
     Eigen::VectorXd integrateDIY(const Eigen::VectorXd &qI, const Eigen::VectorXd &dqI);
     static Eigen::Quaterniond intQuat(const Eigen::Quaterniond &quat, const Eigen::Matrix<double, 3, 1> &w);

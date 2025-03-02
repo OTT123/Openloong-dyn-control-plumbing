@@ -35,7 +35,7 @@ int main(int argc, const char **argv) {
   MJ_Interface mj_interface(mj_model, mj_data); // data interface for Mujoco
   Pin_KinDyn kinDynSolver(
       "../models/go2/go2_description.urdf"); // kinematics and dynamics solver
-  DataBus RobotState(18);                    // data bus
+  DataBus RobotState(kinDynSolver.model_nv);                    // data bus
 
   /// ----------------- sim Loop ---------------
   double simEndTime = 1e6;

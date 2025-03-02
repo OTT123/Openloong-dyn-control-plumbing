@@ -72,6 +72,10 @@ Pin_KinDyn::Pin_KinDyn(std::string urdf_pathIn) {
   FR_foot_frame_ = model_go2_.getFrameId("FR_foot");
   RL_foot_frame_ = model_go2_.getFrameId("RL_foot");
   RR_foot_frame_ = model_go2_.getFrameId("RR_foot");
+  FL_foot_frame_fixed_ = model_go2_fixed_.getFrameId("FL_foot");
+  FR_foot_frame_fixed_ = model_go2_fixed_.getFrameId("FR_foot");
+  RL_foot_frame_fixed_ = model_go2_fixed_.getFrameId("RL_foot");
+  RR_foot_frame_fixed_ = model_go2_fixed_.getFrameId("RR_foot");
   // read joint pvt parameters
   // 源代码中读出来全是0，可能是bug
   // 此外这些变量只出现在一个似乎从未被调用过的函数中
@@ -187,6 +191,7 @@ void Pin_KinDyn::computeJ_dJ() {
   pinocchio::computeJointJacobiansTimeVariation(model_go2_, data_go2_, q_, dq_);
 
   pinocchio::updateGlobalPlacements(model_go2_, data_go2_);
+  pinocchio::updateFramePlacements(model_go2_, data_go2_);
 
   pinocchio::getFrameJacobian(model_go2_, data_go2_, FL_foot_frame_,
                               pinocchio::LOCAL_WORLD_ALIGNED, J_FL_foot_);
@@ -290,6 +295,7 @@ void Pin_KinDyn::computeJ_dJ() {
   q_fixed = q_.block(7, 0, model_go2_fixed_.nv, 1);
   pinocchio::forwardKinematics(model_go2_fixed_, data_go2_fixed_, q_fixed);
   pinocchio::updateGlobalPlacements(model_go2_fixed_, data_go2_fixed_);
+  pinocchio::updateFramePlacements(model_go2_fixed_, data_go2_fixed_);
   FL_foot_pos_L_ = data_go2_fixed_.oMf[FL_foot_frame_].translation();
   FR_foot_pos_L_ = data_go2_fixed_.oMf[FR_foot_frame_].translation();
   RL_foot_pos_L_ = data_go2_fixed_.oMf[RL_foot_frame_].translation();
@@ -365,9 +371,13 @@ Pin_KinDyn::IkRes Pin_KinDyn::computeInK_Leg(
 
   // qIk只有关节空间
   Eigen::VectorXd qIk = Eigen::VectorXd::Zero(model_go2_fixed_.nv);
-  const double eps = 1e-4;
-  const int IT_MAX = 100;
-  const double DT = 7e-1;
+  for (int i = 0; i < 4; i++) {
+    qIk[2 + 3 * i] = -1.78;
+  }
+
+  const double eps = 1e-3;
+  const int IT_MAX = 1e4;
+  const double DT = 5e-2;
   const double damp = 5e-3;
   Eigen::MatrixXd J_FL = Eigen::MatrixXd::Zero(6, model_go2_fixed_.nv);
   Eigen::MatrixXd J_FR = Eigen::MatrixXd::Zero(6, model_go2_fixed_.nv);
@@ -387,10 +397,11 @@ Pin_KinDyn::IkRes Pin_KinDyn::computeInK_Leg(
   int itr_count{0};
   for (itr_count = 0;; itr_count++) {
     pinocchio::forwardKinematics(model_go2_fixed_, data_go2_fixed_, qIk);
-    const pinocchio::SE3 iMdFL = data_go2_fixed_.oMi[J_Idx_FL].actInv(oMdesFL);
-    const pinocchio::SE3 iMdFR = data_go2_fixed_.oMi[J_Idx_FR].actInv(oMdesFR);
-    const pinocchio::SE3 iMdRL = data_go2_fixed_.oMi[J_Idx_RL].actInv(oMdesRL);
-    const pinocchio::SE3 iMdRR = data_go2_fixed_.oMi[J_Idx_RR].actInv(oMdesRR);
+    pinocchio::updateFramePlacements(model_go2_fixed_, data_go2_fixed_);
+    const pinocchio::SE3 iMdFL = data_go2_fixed_.oMf[J_Idx_FL].actInv(oMdesFL);
+    const pinocchio::SE3 iMdFR = data_go2_fixed_.oMf[J_Idx_FR].actInv(oMdesFR);
+    const pinocchio::SE3 iMdRL = data_go2_fixed_.oMf[J_Idx_RL].actInv(oMdesRL);
+    const pinocchio::SE3 iMdRR = data_go2_fixed_.oMf[J_Idx_RR].actInv(oMdesRR);
     errFL = pinocchio::log6(iMdFL).toVector();
     errFR = pinocchio::log6(iMdFR).toVector();
     errRL = pinocchio::log6(iMdRL).toVector();
@@ -417,12 +428,13 @@ Pin_KinDyn::IkRes Pin_KinDyn::computeInK_Leg(
 
     Eigen::MatrixXd W;
     W = Eigen::MatrixXd::Identity(model_go2_fixed_.nv, model_go2_fixed_.nv);
-    J_FL.rightCols(model_go2_fixed_.nv - 3).setZero();
-    J_FR.leftCols(3).setZero();
-    J_FR.rightCols(model_go2_fixed_.nv - 6).setZero();
-    J_RL.leftCols(6).setZero();
-    J_RL.rightCols(model_go2_fixed_.nv - 9).setZero();
-    J_RR.leftCols(9).setZero();
+    // J_FL.rightCols(model_go2_fixed_.nv - 3).setZero();
+    // J_FR.leftCols(3).setZero();
+    // J_FR.rightCols(model_go2_fixed_.nv - 6).setZero();
+    // J_RL.leftCols(6).setZero();
+    // J_RL.rightCols(model_go2_fixed_.nv - 9).setZero();
+    // J_RR.leftCols(9).setZero();
+
     pinocchio::Data::Matrix6 JlogFL;
     pinocchio::Data::Matrix6 JlogFR;
     pinocchio::Data::Matrix6 JlogRL;
@@ -455,7 +467,90 @@ Pin_KinDyn::IkRes Pin_KinDyn::computeInK_Leg(
     res.status = -1;
   }
   res.jointPosRes = qIk;
-  
+
+  return res;
+}
+
+Pin_KinDyn::IkRes
+Pin_KinDyn::computeInK_SingleLeg(const Eigen::Matrix3d &Rdes,
+                                 const Eigen::Vector3d &Pdes,
+                                 const Pin_KinDyn::legIdx &leg_idx) {
+  pinocchio::FrameIndex leg_foot_frame_id;
+  switch (leg_idx) {
+  case FL:
+    leg_foot_frame_id = FL_foot_frame_;
+    break;
+  case FR:
+    leg_foot_frame_id = FR_foot_frame_;
+    break;
+  case RL:
+    leg_foot_frame_id = RL_foot_frame_;
+    break;
+  case RR:
+    leg_foot_frame_id = RR_foot_frame_;
+    break;
+  default:
+    std::cout << "error: leg index not found!" << std::endl;
+    break;
+  }
+  const pinocchio::SE3 oMdes(Rdes, Pdes);
+  Eigen::VectorXd qIk = Eigen::VectorXd::Zero(model_go2_fixed_.nv);
+  for (int i = 0; i < 4; i++) {
+    qIk[2 + 3 * i] = -1.78;
+  }
+
+  const double eps = 1e-4;
+  const int IT_MAX = 1e3;
+  const double DT = 1e-2;
+  const double damp = 1e-6;
+  bool success = false;
+  Eigen::MatrixXd J = Eigen::MatrixXd::Zero(6, model_go2_fixed_.nv);
+  Eigen::Matrix<double, 6, 1> error;
+  Eigen::VectorXd v = Eigen::VectorXd::Zero(model_go2_fixed_.nv);
+  const Eigen::MatrixXd W =
+      Eigen::MatrixXd::Identity(model_go2_fixed_.nv, model_go2_fixed_.nv);
+
+  int itr_count{0};
+  for (itr_count = 0;; itr_count++) {
+    pinocchio::forwardKinematics(model_go2_fixed_, data_go2_fixed_, qIk);
+    pinocchio::updateFramePlacements(model_go2_fixed_, data_go2_fixed_);
+    const pinocchio::SE3 dMi =
+        oMdes.actInv(data_go2_fixed_.oMf[leg_foot_frame_id]);
+    error = pinocchio::log6(dMi).toVector();
+    if (error.norm() < eps) {
+      success = true;
+      break;
+    }
+    if (itr_count > IT_MAX) {
+      success = false;
+      break;
+    }
+    pinocchio::computeFrameJacobian(model_go2_fixed_, data_go2_fixed_, qIk,
+                                    leg_foot_frame_id, J);
+    if (!(itr_count % 10)) {
+      std::cout << itr_count << std::endl;
+      std::cout << "qik= " << qIk.transpose() << std::endl;
+      std::cout << "J= \n" << J << std::endl;
+      std::cout << "leg_foot_frame_id= " << leg_foot_frame_id << std::endl;
+      std::cout << "data_go2_fixed_.oMf[leg_foot_frame_id] = \n"
+                << data_go2_fixed_.oMf[leg_foot_frame_id] << std::endl;
+    }
+    pinocchio::Data::Matrix6 JJt;
+    JJt.noalias() = J * J.transpose();
+    JJt.diagonal().array() += damp;
+    v.noalias() = -J.transpose() * JJt.ldlt().solve(error);
+    qIk = pinocchio::integrate(model_go2_fixed_, qIk, v * DT);
+  }
+  IkRes res;
+  res.err = error;
+  res.itr = itr_count;
+
+  if (success) {
+    res.status = 0;
+  } else {
+    res.status = -1;
+  }
+  res.jointPosRes = qIk;
   return res;
 }
 

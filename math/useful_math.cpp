@@ -127,6 +127,25 @@ Eigen::Quaterniond eul2quat(double roll, double pitch, double yaw)
     resQuat = quatCur;
     return resQuat;
 }
+Eigen::Vector3d Quat2eul(const Eigen::Vector4d& quat){
+    // 创建 Eigen 四元数对象，Eigen 需要 (w, x, y, z) 顺序
+    Eigen::Quaterniond q(quat(3), quat(0), quat(1), quat(2));
+
+    // 转换为欧拉角 (ZYX: yaw -> pitch -> roll)
+    Eigen::Vector3d eulerAnglesZYX = q.toRotationMatrix().eulerAngles(2, 1, 0);
+
+    // 重新调整顺序，确保返回值是 (roll, pitch, yaw)
+    Eigen::Vector3d eulerAnglesRPY;
+    eulerAnglesRPY << eulerAnglesZYX(2), eulerAnglesZYX(1), eulerAnglesZYX(0);
+
+    return eulerAnglesRPY;
+}
+Eigen::Matrix3d Quat2rot(const Eigen::Vector4d& quat){
+    Eigen::Vector3d RPY =  Quat2eul(quat);
+    Eigen::Matrix3d R = eul2Rot(RPY(0), RPY(1), RPY(2));
+
+    return R;
+}
 
 Eigen::Matrix<double, 3, 1> diffRot(const Eigen::Matrix3d &Rcur, Eigen::Matrix3d &Rdes)
 {

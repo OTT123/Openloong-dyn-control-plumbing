@@ -25,6 +25,10 @@ Eigen::Vector3d Rot2eul(const Eigen::Matrix3d &rot);
 
 Eigen::Quaterniond eul2quat(double roll, double pitch, double yaw);
 
+Eigen::Vector3d Quat2eul(const Eigen::Vector4d& quat);
+
+Eigen::Matrix3d Quat2rot(const Eigen::Vector4d& quat);
+
 std::vector<double> eigen2std(const Eigen::VectorXd &Vec);
 
 Eigen::Matrix<double, 3, 1> diffRot(const Eigen::Matrix3d &Rcur, Eigen::Matrix3d &Rdes);
