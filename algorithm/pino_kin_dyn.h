@@ -25,50 +25,50 @@ Feel free to use in any purpose, and cite OpenLoong-Dynamics-Control in any styl
 class Pin_KinDyn
 {
 public:
-    std::vector<bool> motorReachLimit;
+    std::vector<bool> motorReachLimit_;
     const std::vector<std::string> motorName = { "FL_hip_joint","FL_thigh_joint", "FL_calf_joint", "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint", "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint"}; // joint name in urdf and jason config files
-    Eigen::VectorXd motorMaxTorque;
-    Eigen::VectorXd motorMaxPos;
-    Eigen::VectorXd motorMinPos;
+    Eigen::VectorXd motorMaxTorque_;
+    Eigen::VectorXd motorMaxPos_;
+    Eigen::VectorXd motorMinPos_;
 
-    Eigen::VectorXd tauJointOld;
-    std::string urdf_path;
-    pinocchio::Model model_go2;
-    pinocchio::Model model_go2_fixed;
+    Eigen::VectorXd tauJointOld_;
+    std::string urdf_path_;
+    pinocchio::Model model_go2_;
+    pinocchio::Model model_go2_fixed_;
     int model_nv;
 
-    Eigen::VectorXd q, dq, ddq;
-    Eigen::Matrix3d Rcur;
-    Eigen::Quaternion<double> quatCur;
-    Eigen::MatrixXd dyn_M, dyn_M_inv, dyn_C, dyn_G, dyn_Ag, dyn_dAg;
-    Eigen::VectorXd dyn_Non;
-    Eigen::Vector3d CoM_pos;
-    Eigen::Matrix3d inertia;
+    Eigen::VectorXd q_, dq_, ddq_;
+    Eigen::Matrix3d Rcur_;
+    Eigen::Quaternion<double> quatCur_;
+    Eigen::MatrixXd dyn_M_, dyn_M_inv_, dyn_C_, dyn_G_, dyn_Ag_, dyn_dAg_;
+    Eigen::VectorXd dyn_Non_;
+    Eigen::Vector3d CoM_pos_;
+    Eigen::Matrix3d inertia_;
 
-    pinocchio::JointIndex base_joint;
-    pinocchio::JointIndex FL_calf_joint, FR_calf_joint, RL_calf_joint, RR_calf_joint;
-    pinocchio::JointIndex FL_hip_joint, FR_hip_joint, RL_hip_joint, RR_hip_joint;
-    pinocchio::JointIndex FL_calf_joint_fixed, FR_calf_joint_fixed, RL_calf_joint_fixed, RR_calf_joint_fixed;
-    pinocchio::JointIndex FL_hip_joint_fixed, FR_hip_joint_fixed, RL_hip_joint_fixed, RR_hip_joint_fixed;
-    pinocchio::FrameIndex FL_foot_frame, FR_foot_frame, RL_foot_frame, RR_foot_frame;
+    pinocchio::JointIndex base_joint_;
+    pinocchio::JointIndex FL_calf_joint_, FR_calf_joint_, RL_calf_joint_, RR_calf_joint_;
+    pinocchio::JointIndex FL_hip_joint_, FR_hip_joint_, RL_hip_joint_, RR_hip_joint_;
+    pinocchio::JointIndex FL_calf_joint_fixed_, FR_calf_joint_fixed_, RL_calf_joint_fixed_, RR_calf_joint_fixed_;
+    pinocchio::JointIndex FL_hip_joint_fixed_, FR_hip_joint_fixed_, RL_hip_joint_fixed_, RR_hip_joint_fixed_;
+    pinocchio::FrameIndex FL_foot_frame_, FR_foot_frame_, RL_foot_frame_, RR_foot_frame_;
 
-    Eigen::Matrix<double, 6, -1> J_FL_foot, J_FR_foot, J_RL_foot, J_RR_foot, J_base, J_FL_hip, J_FR_hip, J_RL_hip, J_RR_hip;
-    Eigen::Matrix<double, 6, -1> dJ_FL_foot, dJ_FR_foot, dJ_RL_foot, dJ_RR_foot, dJ_base, dJ_FL_hip, dJ_FR_hip, dJ_RL_hip, dJ_RR_hip;
-    Eigen::Matrix<double, 3, -1> Jcom;
+    Eigen::Matrix<double, 6, -1> J_FL_foot_, J_FR_foot_, J_RL_foot_, J_RR_foot_, J_base_, J_FL_hip_, J_FR_hip_, J_RL_hip_, J_RR_hip_;
+    Eigen::Matrix<double, 6, -1> dJ_FL_foot_, dJ_FR_foot_, dJ_RL_foot_, dJ_RR_foot_, dJ_base_, dJ_FL_hip_, dJ_FR_hip_, dJ_RL_hip_, dJ_RR_hip_;
+    Eigen::Matrix<double, 3, -1> Jcom_;
 
-    Eigen::Vector3d FL_foot_pos_W, FR_foot_pos_W, RL_foot_pos_W, RR_foot_pos_W; // foot-end position in world frame
-    Eigen::Vector3d FL_foot_pos_L, FR_foot_pos_L, RL_foot_pos_L, RR_foot_pos_L; // foot-end position in body frame
-    Eigen::Vector3d FL_foot_vel_L, FR_foot_vel_L, RL_foot_vel_L, RR_foot_vel_L; // foot-end velcity in body frame
+    Eigen::Vector3d FL_foot_pos_W_, FR_foot_pos_W_, RL_foot_pos_W_, RR_foot_pos_W_; // foot-end position in world frame
+    Eigen::Vector3d FL_foot_pos_L_, FR_foot_pos_L_, RL_foot_pos_L_, RR_foot_pos_L_; // foot-end position in body frame
+    Eigen::Vector3d FL_foot_vel_L_, FR_foot_vel_L_, RL_foot_vel_L_, RR_foot_vel_L_; // foot-end velcity in body frame
     
-    Eigen::Vector3d FL_hip_pos_W, FR_hip_pos_W, RL_hip_pos_W, RR_hip_pos_W;
-    Eigen::Vector3d FL_hip_pos_L, FR_hip_pos_L, RL_hip_pos_L, RR_hip_pos_L;
+    Eigen::Vector3d FL_hip_pos_W_, FR_hip_pos_W_, RL_hip_pos_W_, RR_hip_pos_W_;
+    Eigen::Vector3d FL_hip_pos_L_, FR_hip_pos_L_, RL_hip_pos_L_, RR_hip_pos_L_;
 
+    Eigen::Matrix3d FL_foot_rot_W_, FR_foot_rot_W_, RL_foot_rot_W_, RR_foot_rot_W_;   // in world frame
+    Eigen::Matrix3d FL_hip_rot_W_, FR_hip_rot_W_, RL_hip_rot_W_, RR_hip_rot_W_;
+    Eigen::Matrix3d FL_foot_rot_L_, FR_foot_rot_L_, RL_foot_rot_L_, RR_foot_rot_L_;             // in Body frame (base)
 
-    Eigen::Matrix3d FL_foot_rot_W, FR_foot_rot_W, RL_foot_rot_W, RR_foot_rot_W, base_rot;   // in world frame
-    Eigen::Matrix3d FL_hip_rot_W, FR_hip_rot_W, RL_hip_rot_W, RR_hip_rot_W;
-    Eigen::Matrix3d FL_foot_rot_L, FR_foot_rot_L, RL_foot_rot_L, RR_foot_rot_L;             // in Body frame (base)
-
-    Eigen::Vector3d base_pos;
+    Eigen::Matrix3d base_rot_;  // in world frame
+    Eigen::Vector3d base_pos_;  // in world frame
 
     enum legIdx
     {
@@ -90,12 +90,12 @@ public:
     void dataBusWrite(DataBus &robotState);
     void computeJ_dJ();
     void computeDyn();
-    IkRes computeInK_Leg(const Eigen::Matrix3d &Rdes_L, const Eigen::Vector3d &Pdes_L, const Eigen::Matrix3d &Rdes_R, const Eigen::Vector3d &Pdes_R);
+    IkRes computeInK_Leg(const Eigen::Matrix3d &Rdes_FL, const Eigen::Vector3d &Pdes_FL, const Eigen::Matrix3d &Rdes_FR, const Eigen::Vector3d &Pdes_FR, const Eigen::Matrix3d &Rdes_RL, const Eigen::Vector3d &Pdes_RL, const Eigen::Matrix3d &Rdes_RR, const Eigen::Vector3d &Pdes_RR);
     IkRes computeInK_Hand(const Eigen::Matrix3d &Rdes_L, const Eigen::Vector3d &Pdes_L, const Eigen::Matrix3d &Rdes_R, const Eigen::Vector3d &Pdes_R);
     Eigen::VectorXd integrateDIY(const Eigen::VectorXd &qI, const Eigen::VectorXd &dqI);
     static Eigen::Quaterniond intQuat(const Eigen::Quaterniond &quat, const Eigen::Matrix<double, 3, 1> &w);
     void workspaceConstraint(Eigen::VectorXd &qFT, Eigen::VectorXd &tauJointFT);
 
 private:
-    pinocchio::Data data_go2, data_go2_fixed;
+    pinocchio::Data data_go2_, data_go2_fixed_;
 };

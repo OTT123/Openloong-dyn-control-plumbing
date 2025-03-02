@@ -53,18 +53,24 @@ struct DataBus
     Eigen::VectorXd qCmd, dqCmd;
     Eigen::VectorXd tauJointCmd;
     // work space
-    Eigen::Vector3d FL_foot_pos_W, FR_foot_pos_W, RL_foot_pos_W, RR_foot_pos_W, base_pos, base_vel;
-    Eigen::Vector3d FL_foot_pos_L, FR_foot_pos_L, RL_foot_pos_L, RR_foot_pos_L;             // in Body frame (base)
-    Eigen::Matrix3d FL_foot_rot_W, FR_foot_rot_W, RL_foot_rot_W, RR_foot_rot_W, base_rot;   // in world frame
-    Eigen::Matrix3d FL_hip_rot_W, FR_hip_rot_W, RL_hip_rot_W, RR_hip_rot_W;
+    // foot
+    Eigen::Vector3d FL_foot_pos_W, FR_foot_pos_W, RL_foot_pos_W, RR_foot_pos_W;
+    Eigen::Vector3d FL_foot_pos_L, FR_foot_pos_L, RL_foot_pos_L, RR_foot_pos_L;    // in Body frame (base)
+    Eigen::Matrix3d FL_foot_rot_W, FR_foot_rot_W, RL_foot_rot_W, RR_foot_rot_W;   // in world frame
     Eigen::Matrix3d FL_foot_rot_L, FR_foot_rot_L, RL_foot_rot_L, RR_foot_rot_L;             // in Body frame (base)
     Eigen::Vector3d FL_foot_vel_L, FR_foot_vel_L, RL_foot_vel_L, RR_foot_vel_L;             // linear velocity in Body (base) frame
-    Eigen::Vector3d FL_hip_pos_L, FR_hip_pos_L, RL_hip_pos_L, RR_hip_pos_L;                 // in Body frame (base)
-    Eigen::Vector3d FL_hip_pos_W, FR_hip_pos_W, RL_hip_pos_W, RR_hip_pos_W;
     Eigen::Vector3d FL_foot_pos_L_cmd, FR_foot_pos_L_cmd, RL_foot_pos_L_cmd, RR_foot_pos_L_cmd;
     Eigen::Matrix3d FL_foot_rot_L_cmd, FR_foot_rot_L_cmd, RL_foot_rot_L_cmd, RR_foot_rot_L_cmd;
+    // base
+    Eigen::Vector3d base_pos, base_vel;// base to world
+    Eigen::Matrix3d base_rot;   // base to world
+    // hip
+    Eigen::Matrix3d FL_hip_rot_W, FR_hip_rot_W, RL_hip_rot_W, RR_hip_rot_W;
+    Eigen::Vector3d FL_hip_pos_L, FR_hip_pos_L, RL_hip_pos_L, RR_hip_pos_L;                 // in Body frame (base)
+    Eigen::Vector3d FL_hip_pos_W, FR_hip_pos_W, RL_hip_pos_W, RR_hip_pos_W;
     // Eigen::Vector3d hip_link_pos;
     // Eigen::Matrix3d hip_link_rot;
+
     // kin and dyn
     Eigen::MatrixXd J_base, J_FL_foot, J_FR_foot, J_RL_foot, J_RR_foot;
     Eigen::MatrixXd J_FL_hip, J_FR_hip, J_RL_hip, J_RR_hip;
