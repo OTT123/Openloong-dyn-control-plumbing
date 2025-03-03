@@ -21,13 +21,14 @@ MJ_Interface::MJ_Interface(mjModel *mj_modelIn, mjData *mj_dataIn) {
   motor_pos_Old.assign(jointNum, 0);
   for (int i = 0; i < jointNum; i++) {
     int tmpId = mj_name2id(mj_model, mjOBJ_JOINT, JointName[i].c_str());
+    std::cout<<"JointName = " << JointName[i] << " tmpId = " << tmpId<< std::endl;
     if (tmpId == -1) {
       std::cerr << JointName[i] << " not found in the XML file!" << std::endl;
       std::terminate();
     }
-    jntId_qpos[i] = mj_model->jnt_qposadr[tmpId];
-    jntId_qvel[i] = mj_model->jnt_dofadr[tmpId];
-    std::string motorName = JointName[i];
+    jntId_qpos[i] = mj_model->jnt_qposadr[tmpId]; // 这个id应该是广义坐标的id(+7)
+    jntId_qvel[i] = mj_model->jnt_dofadr[tmpId];  // 这个id应该是广义坐标的id(+6)
+    std::string motorName = JointName[i]; 
     // motorName = "M" + motorName.substr(1);
     motorName = MotorName[i];
     tmpId = mj_name2id(mj_model, mjOBJ_ACTUATOR, motorName.c_str());
@@ -37,6 +38,7 @@ MJ_Interface::MJ_Interface(mjModel *mj_modelIn, mjData *mj_dataIn) {
     }
     jntId_dctl[i] = tmpId;
   }
+
   //    int adr = m->sensor_adr[sensorId];
   //    int dim = m->sensor_dim[sensorId];
   //    mjtNum sensor_data[dim];

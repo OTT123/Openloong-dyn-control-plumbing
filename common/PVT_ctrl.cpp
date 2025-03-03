@@ -99,8 +99,25 @@ void PVT_Ctr::calMotorsPVT(double deltaP_Lim) {
         if (fabs(delta)>= fabs(deltaP_Lim))
             delta=deltaP_Lim * sign(delta);
         double pDes=delta+motor_pos_des_old[i];
+        if(i>=0 && i < 3){
+            std::cout<<"FL info "<< i << "\n"
+            // << " motor_pos_des = " << motor_pos_des[i]
+            // << " motor_pos_des_old= " << motor_pos_des_old[i] 
+            // <<" delta = "<<delta 
+            << " pDes = "<< pDes
+            // << " PV_enable = " << PV_enable[i]
+            // << " pvt_Kp = " << pvt_Kp[i]
+            // << " pvt_Kd = " << pvt_Kd[i]
+            << " motor_pos_cur = " << motor_pos_cur[i]
+            << " motor_vel_des = " << motor_vel_des[i]
+            << " motor_vel = " << motor_vel[i]
+
+            <<std::endl;
+        }
         tauDes=PV_enable[i]*pvt_Kp[i]*(pDes-motor_pos_cur[i])+PV_enable[i]*pvt_Kd[i]*(motor_vel_des[i]-motor_vel[i]);
+
         tauDes=tau_out_lpf[i].ftOut(tauDes)+motor_tor_des[i];
+
         if (fabs(tauDes)>=fabs(maxTor[i]))
             tauDes= sign(tauDes)*maxTor[i];
         motor_tor_out_motor[i]=tauDes/gear[i];

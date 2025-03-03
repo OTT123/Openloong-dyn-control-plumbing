@@ -84,3 +84,6 @@ target_link_libraries(float_control core mujoco ${sysSimLibs} dl)
 
 add_executable(test_dyn demo/test_dyn.cpp)
 target_link_libraries(test_dyn core mujoco ${sysSimLibs} dl)
+
+add_executable(test_simple_gait demo/test_simple_gait.cpp)
+target_link_libraries(test_simple_gait core mujoco ${sysSimLibs} dl)

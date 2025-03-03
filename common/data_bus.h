@@ -64,16 +64,15 @@ struct DataBus
     // base
     Eigen::Vector3d base_pos, base_vel;// base to world
     Eigen::Matrix3d base_rot;   // base to world
-    // hip
-    Eigen::Matrix3d FL_hip_rot_W, FR_hip_rot_W, RL_hip_rot_W, RR_hip_rot_W;
-    Eigen::Vector3d FL_hip_pos_L, FR_hip_pos_L, RL_hip_pos_L, RR_hip_pos_L;                 // in Body frame (base)
-    Eigen::Vector3d FL_hip_pos_W, FR_hip_pos_W, RL_hip_pos_W, RR_hip_pos_W;
-    // Eigen::Vector3d hip_link_pos;
-    // Eigen::Matrix3d hip_link_rot;
+    // thigh
+    Eigen::Matrix3d FL_thigh_rot_W, FR_thigh_rot_W, RL_thigh_rot_W, RR_thigh_rot_W;
+    Eigen::Vector3d FL_thigh_pos_L, FR_thigh_pos_L, RL_thigh_pos_L, RR_thigh_pos_L;                 // in Body frame (base)
+    Eigen::Vector3d FL_thigh_pos_W, FR_thigh_pos_W, RL_thigh_pos_W, RR_thigh_pos_W;
+
 
     // kin and dyn
     Eigen::MatrixXd J_base, J_FL_foot, J_FR_foot, J_RL_foot, J_RR_foot;
-    Eigen::MatrixXd J_FL_hip, J_FR_hip, J_RL_hip, J_RR_hip;
+    Eigen::MatrixXd J_FL_thigh, J_FR_thigh, J_RL_thigh, J_RR_thigh;
     Eigen::MatrixXd dJ_base, dJ_FL_foot, dJ_FR_foot, dJ_RL_foot, dJ_RR_foot;
     Eigen::MatrixXd Jcom_W; // jacobian of CoM, in world frame
     Eigen::Vector3d pCoM_W; // 质心坐标 in world frame
@@ -85,13 +84,6 @@ struct DataBus
     // ？
     Eigen::Vector3d slop;   
     Eigen::Matrix<double, 3, 3> inertia;
-
-
-
-
-
-
-
 
     // state EST
     Eigen::Matrix<double, 3, 1> base_pos_est, base_vel_est;
@@ -148,7 +140,7 @@ struct DataBus
     Eigen::Vector3d swingDesPosCur_L;
     Eigen::Vector3d swingDesPosFinal_W;
     Eigen::Vector3d stanceDesPos_W;
-    Eigen::Vector3d posHip_W, posST_W;
+    Eigen::Vector3d posthigh_W, posST_W;
     Eigen::Vector3d desV_W; // desired linear velocity
     double desWz_W;         // desired angular velocity
     double theta0;          // offset yaw angle of the swing leg, w.r.t body frame
