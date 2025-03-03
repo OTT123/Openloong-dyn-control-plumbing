@@ -46,7 +46,7 @@ int main(int argc, const char **argv) {
   Eigen::Matrix3d K_p;
   K_p.diagonal() << 500, 500, 500;
   Eigen::Matrix3d K_d;
-  K_d.diagonal() << 50, 50, 50;
+  K_d.diagonal() << 0, 0, 0;
 
   // ini position and posture for foot-end
   std::vector<double> motors_pos_des(model_nv - 6, 0);
