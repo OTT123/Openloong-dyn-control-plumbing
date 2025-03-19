@@ -6,17 +6,16 @@ in any style, to contribute to the advancement of the community.
  <https://atomgit.com/openloong/openloong-dyn-control.git>
  <web@openloong.org.cn>
 */
+/////////////////////////////////
+//  这是一个足端阻抗控制的demo     //
+/////////////////////////////////
 #include "GLFW_callbacks.h"
 #include "MJ_interface.h"
 #include "PVT_ctrl.h"
 #include "data_logger.h"
-#include "foot_placement.h"
-#include "gait_scheduler.h"
-#include "joystick_interpreter.h"
 #include "pino_kin_dyn.h"
 #include "tools.h"
 #include "useful_math.h"
-#include "wbc_priority.h"
 #include <GLFW/glfw3.h>
 #include <cstdio>
 #include <iostream>
@@ -24,7 +23,7 @@ in any style, to contribute to the advancement of the community.
 
 // MuJoCo load and compile model
 char error[1000] = "Could not load binary model";
-mjModel *mj_model = mj_loadXML("../models/go2/scene.xml", 0, error, 1000);
+mjModel *mj_model = mj_loadXML("../models/go2/scene_fixed.xml", 0, error, 1000);
 mjData *mj_data = mj_makeData(mj_model);
 
 //************************
@@ -35,8 +34,22 @@ int main(int argc, const char **argv) {
   MJ_Interface mj_interface(mj_model, mj_data); // data interface for Mujoco
   Pin_KinDyn kinDynSolver(
       "../models/go2/go2_description.urdf"); // kinematics and dynamics solver
-  DataBus RobotState(kinDynSolver.model_nv);                    // data bus
+  DataBus RobotState(kinDynSolver.model_nv_); // data bus
+  PVT_Ctr pvtCtr(mj_model->opt.timestep,
+                 "../common/joint_ctrl_config.json"); // PVT joint control
+  DataLogger logger("../record/datalog.log");         // data logger
 
+  // variables ini
+  double xv_des = 0.7; // desired velocity in x direction
+  int model_nv = kinDynSolver.model_nv_;
+
+  // ini position and posture for foot-end
+  std::vector<double> motors_pos_des(model_nv - 6, 0);
+  std::vector<double> motors_pos_cur(model_nv - 6, 0);
+  std::vector<double> motors_vel_des(model_nv - 6, 0);
+  std::vector<double> motors_vel_cur(model_nv - 6, 0);
+  std::vector<double> motors_tau_des(model_nv - 6, 0);
+  std::vector<double> motors_tau_cur(model_nv - 6, 0);
   /// ----------------- sim Loop ---------------
   double simEndTime = 1e6;
   mjtNum simstart = mj_data->time;
@@ -46,68 +59,40 @@ int main(int argc, const char **argv) {
 
   // init UI: GLFW
   uiController.iniGLFW();
-  uiController
-      .enableTracking(); // enable viewpoint tracking of the body 1 of the robot
+  uiController.enableTracking();
   uiController.createWindow("Demo", false);
 
   while (!glfwWindowShouldClose(uiController.window)) {
     simstart = mj_data->time;
-    while (mj_data->time - simstart < 1.0 / 60.0 &&
-           uiController.runSim) // press "1" to pause and resume, "2" to step
-                                // the simulation
-    {
+    while (mj_data->time - simstart < 1.0 / 60.0) {
       mj_step(mj_model, mj_data);
-      simTime = mj_data->time;
-      std::cout << WHITE << "------------" << simTime << " s------------"
-                << NONE << std::endl;
-      mj_interface.updateSensorValues();
-      mj_interface.dataBusWrite(RobotState);
-      PrintVecMat("RobotState.q", RobotState.q);
-      PrintVecMat("RobotState.dq", RobotState.dq);
-      PrintVecMat("RobotState.ddq", RobotState.ddq);
 
-      // // update kinematics and dynamics info
-      // kinDynSolver.dataBusRead(RobotState);
-      // kinDynSolver.computeJ_dJ();
-      // kinDynSolver.computeDyn();
-      // kinDynSolver.dataBusWrite(RobotState);
-    }
-    if (mj_data->time >= simEndTime) {
-      break;
-    }while (!glfwWindowShouldClose(uiController.window)) {
-    simstart = mj_data->time;
-    while (mj_data->time - simstart < 1.0 / 60.0 &&
-           uiController.runSim) // press "1" to pause and resume, "2" to step
-                                // the simulation
-    {
-      mj_step(mj_model, mj_data);
       simTime = mj_data->time;
-      std::cout << WHITE << "------------" << simTime << " s------------"
-                << NONE << std::endl;
+      double time = simTime - simstart;
+      printf("-------------%.3f s------------\n", simTime);
       mj_interface.updateSensorValues();
       mj_interface.dataBusWrite(RobotState);
-      PrintVecMat("RobotState.q", RobotState.q);
-      PrintVecMat("RobotState.dq", RobotState.dq);
-      PrintVecMat("RobotState.ddq", RobotState.ddq);
 
       // update kinematics and dynamics info
       kinDynSolver.dataBusRead(RobotState);
       kinDynSolver.computeJ_dJ();
-      // kinDynSolver.computeDyn();
-      // kinDynSolver.dataBusWrite(RobotState);
+      kinDynSolver.computeDyn();
+      kinDynSolver.dataBusWrite(RobotState);
     }
+
     if (mj_data->time >= simEndTime) {
       break;
     }
-
-    uiController.updateScene();
-  }
 
     uiController.updateScene();
   }
 
   //    // free visualization storage
   uiController.Close();
+
+  // free MuJoCo model and data, deactivate
+  mj_deleteData(mj_data);
+  mj_deleteModel(mj_model);
 
   return 0;
 }

@@ -12,6 +12,14 @@ Feel free to use in any purpose, and cite OpenLoong-Dynamics-Control in any styl
 #include <vector>
 #include "iomanip"
 
+typedef enum
+{
+  FL = 0x00,   //左前
+  FR = 0x01,   //右前
+  RL = 0x02,   //左后
+  RR = 0x03    //右后
+}legNameTypeDef;
+
 struct DataBus
 {
     const int model_nv; // number of dq
@@ -68,10 +76,19 @@ struct DataBus
     Eigen::Matrix3d FL_thigh_rot_W, FR_thigh_rot_W, RL_thigh_rot_W, RR_thigh_rot_W;
     Eigen::Vector3d FL_thigh_pos_L, FR_thigh_pos_L, RL_thigh_pos_L, RR_thigh_pos_L;                 // in Body frame (base)
     Eigen::Vector3d FL_thigh_pos_W, FR_thigh_pos_W, RL_thigh_pos_W, RR_thigh_pos_W;
+    Eigen::Vector3d FL_hip_pos_W, FR_hip_pos_W, RL_hip_pos_W, RR_hip_pos_W;
+    Eigen::Vector3d FL_hip_pos_L, FR_hip_pos_L, RL_hip_pos_L, RR_hip_pos_L;
 
+    legNameTypeDef Fst;
+    legNameTypeDef Rst;
+    legNameTypeDef Fsw;
+    legNameTypeDef Rsw;
+    Eigen::VectorXd foot_force_sensor[4];
+    Eigen::Vector4i foot_is_contact;
 
     // kin and dyn
     Eigen::MatrixXd J_base, J_FL_foot, J_FR_foot, J_RL_foot, J_RR_foot;
+    Eigen::MatrixXd J_FL_foot_body, J_FR_foot_body, J_RL_foot_body, J_RR_foot_body;
     Eigen::MatrixXd J_FL_thigh, J_FR_thigh, J_RL_thigh, J_RR_thigh;
     Eigen::MatrixXd dJ_base, dJ_FL_foot, dJ_FR_foot, dJ_RL_foot, dJ_RR_foot;
     Eigen::MatrixXd Jcom_W; // jacobian of CoM, in world frame
@@ -97,13 +114,6 @@ struct DataBus
     Eigen::Matrix<double, 14, 1> Y;
     Eigen::Matrix<double, 6, 1> pbW;
 
-    // cmd value from the joystick interpreter
-    Eigen::Vector3d js_eul_des;
-    Eigen::Vector3d js_pos_des;
-    Eigen::Vector3d js_omega_des;
-    Eigen::Vector3d js_vel_des;
-
-    // cmd values for MPC
     Eigen::VectorXd Xd;
     Eigen::VectorXd X_cur;
     //    Eigen::Vector3d     mpc_eul_des;
@@ -117,6 +127,12 @@ struct DataBus
     int qp_nWSR_MPC;
     double qp_cpuTime_MPC;
     int qpStatus_MPC;
+
+        // cmd value from the joystick interpreter
+    Eigen::Vector3d     js_eul_des;
+    Eigen::Vector3d     js_pos_des;
+    Eigen::Vector3d     js_omega_des;
+    Eigen::Vector3d     js_vel_des;
 
     // cmd values for WBC
     Eigen::Vector3d base_rpy_des;
@@ -133,6 +149,8 @@ struct DataBus
     int qp_nWSR;
     double qp_cpuTime;
     int qp_status;
+
+
 
     // values for foot-placement
     Eigen::Vector3d swingStartPos_W;

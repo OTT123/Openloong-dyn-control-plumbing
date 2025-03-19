@@ -34,14 +34,14 @@ int main(int argc, const char **argv) {
   MJ_Interface mj_interface(mj_model, mj_data); // data interface for Mujoco
   Pin_KinDyn kinDynSolver(
       "../models/go2/go2_description.urdf"); // kinematics and dynamics solver
-  DataBus RobotState(kinDynSolver.model_nv); // data bus
+  DataBus RobotState(kinDynSolver.model_nv_); // data bus
   PVT_Ctr pvtCtr(mj_model->opt.timestep,
                  "../common/joint_ctrl_config.json"); // PVT joint control
   DataLogger logger("../record/datalog.log");         // data logger
 
   // variables ini
   double xv_des = 0.7; // desired velocity in x direction
-  int model_nv = kinDynSolver.model_nv;
+  int model_nv = kinDynSolver.model_nv_;
 
   Eigen::Matrix3d K_p;
   K_p.diagonal() << 500, 500, 500;

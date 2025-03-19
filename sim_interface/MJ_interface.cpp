@@ -21,14 +21,16 @@ MJ_Interface::MJ_Interface(mjModel *mj_modelIn, mjData *mj_dataIn) {
   motor_pos_Old.assign(jointNum, 0);
   for (int i = 0; i < jointNum; i++) {
     int tmpId = mj_name2id(mj_model, mjOBJ_JOINT, JointName[i].c_str());
-    std::cout<<"JointName = " << JointName[i] << " tmpId = " << tmpId<< std::endl;
+    std::cout << "JointName = " << JointName[i] << " tmpId = " << tmpId
+              << std::endl;
     if (tmpId == -1) {
       std::cerr << JointName[i] << " not found in the XML file!" << std::endl;
       std::terminate();
     }
-    jntId_qpos[i] = mj_model->jnt_qposadr[tmpId]; // 这个id应该是广义坐标的id(+7)
-    jntId_qvel[i] = mj_model->jnt_dofadr[tmpId];  // 这个id应该是广义坐标的id(+6)
-    std::string motorName = JointName[i]; 
+    jntId_qpos[i] =
+        mj_model->jnt_qposadr[tmpId]; // 这个id应该是广义坐标的id(+7)
+    jntId_qvel[i] = mj_model->jnt_dofadr[tmpId]; // 这个id应该是广义坐标的id(+6)
+    std::string motorName = JointName[i];
     // motorName = "M" + motorName.substr(1);
     motorName = MotorName[i];
     tmpId = mj_name2id(mj_model, mjOBJ_ACTUATOR, motorName.c_str());
@@ -49,6 +51,17 @@ MJ_Interface::MJ_Interface(mjModel *mj_modelIn, mjData *mj_dataIn) {
   velSensorId = mj_name2id(mj_model, mjOBJ_SENSOR, velSensorName.c_str());
   gyroSensorId = mj_name2id(mj_model, mjOBJ_SENSOR, gyroSensorName.c_str());
   accSensorId = mj_name2id(mj_model, mjOBJ_SENSOR, accSensorName.c_str());
+
+  // 将几何体名称转换为ID
+  for (const auto &name : FootName) {
+    int geom_id = mj_name2id(mj_model, mjOBJ_GEOM, name.c_str());
+    if (geom_id != -1) {
+      foot_geom_ids.push_back(geom_id);
+    }else{
+      std::cerr<<"cant find foot named "<<name<<std::endl;
+      std::terminate();
+    }
+  }
 }
 
 void MJ_Interface::updateSensorValues() {
@@ -86,7 +99,8 @@ void MJ_Interface::updateSensorValues() {
     double posOld = basePos[i];
     basePos[i] = mj_data->xpos[3 * baseBodyId + i];
     baseAcc[i] = mj_data->sensordata[mj_model->sensor_adr[accSensorId] + i];
-    baseAngVel[i] = mj_data->sensordata[mj_model->sensor_adr[gyroSensorId] + i];    // 传感器采出来是body坐标系的角速度
+    baseAngVel[i] = mj_data->sensordata[mj_model->sensor_adr[gyroSensorId] +
+                                        i]; // 传感器采出来是body坐标系的角速度
     baseLinVel[i] = (basePos[i] - posOld) / (mj_model->opt.timestep);
   };
 }
@@ -102,7 +116,7 @@ void MJ_Interface::dataBusWrite(DataBus &busIn) {
   busIn.rpy[0] = rpy[0];
   busIn.rpy[1] = rpy[1];
   busIn.rpy[2] = rpy[2];
-  for(int i = 0; i < 3; ++i){
+  for (int i = 0; i < 3; ++i) {
     busIn.f_FL[i] = f3d[i][0];
     busIn.f_FR[i] = f3d[i][1];
     busIn.f_RL[i] = f3d[i][2];
@@ -120,5 +134,25 @@ void MJ_Interface::dataBusWrite(DataBus &busIn) {
   busIn.baseAngVel[0] = baseAngVel[0];
   busIn.baseAngVel[1] = baseAngVel[1];
   busIn.baseAngVel[2] = baseAngVel[2];
+  busIn.base_omega_L[0] = baseAngVel[0];
+  busIn.base_omega_L[1] = baseAngVel[1];
+  busIn.base_omega_L[2] = baseAngVel[2];
+  busIn.foot_is_contact.setZero();
+  for(int i = 0; i < 4; ++i){
+    busIn.foot_force_sensor[i] = Eigen::VectorXd::Zero(6);
+  }
+
+  for (int contact_id = 0; contact_id < mj_data->ncon; contact_id++) {
+    mjContact &contact = mj_data->contact[contact_id];
+    const int geom1 = contact.geom1;
+    const int geom2 = contact.geom2;
+    bool is_foot_contact = false;
+    for(int j = 0; j < 4; j++){
+      if(geom1 == foot_geom_ids[j] || geom2 == foot_geom_ids[j]){
+        busIn.foot_is_contact[j] = 1;
+        mj_contactForce(mj_model, mj_data, contact_id, busIn.foot_force_sensor[j].data());
+      }
+    }
+  }
   busIn.updateQ();
 }

@@ -1,7 +1,7 @@
 {
    "FL_hip_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 1.0472,
       "maxSpeed": 30.1,
@@ -10,8 +10,8 @@
       "gear": 1.0
    },
    "FL_thigh_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 3.4907,
       "maxSpeed": 30.1,
@@ -20,8 +20,8 @@
       "gear": 1.0
    },
    "FL_calf_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": -0.83776,
       "maxSpeed": 15.70,
@@ -30,8 +30,8 @@
       "gear": 1.0
    },
    "FR_hip_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 1.0472,
       "maxSpeed": 30.1,
@@ -40,8 +40,8 @@
       "gear": 1.0
    },
    "FR_thigh_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 3.49,
       "maxSpeed": 30.1,
@@ -50,8 +50,8 @@
       "gear": 1.0
    },
    "FR_calf_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": -0.83776,
       "maxSpeed": 15.70,
@@ -60,8 +60,8 @@
       "gear": 1.0
    },
    "RL_hip_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 1.0472,
       "maxSpeed": 30.1,
@@ -70,8 +70,8 @@
       "gear": 1.0
    },
    "RL_thigh_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 4.5379,
       "maxSpeed": 30.1,
@@ -80,8 +80,8 @@
       "gear": 1.0
    },
    "RL_calf_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": -0.83776,
       "maxSpeed": 15.70,
@@ -90,8 +90,8 @@
       "gear": 1.0
    },
    "RR_hip_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 1.0472,
       "maxSpeed": 30.1,
@@ -100,8 +100,8 @@
       "gear": 1.0
    },
    "RR_thigh_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": 4.5379,
       "maxSpeed": 30.1,
@@ -110,8 +110,8 @@
       "gear": 1.0
    },
    "RR_calf_joint": {
-      "PVT_LPF_Fc": 50,
-      "kd": 50.0,
+      "PVT_LPF_Fc": 20,
+      "kd": 20.0,
       "kp": 200.0,
       "maxPos": -0.83776,
       "maxSpeed": 15.70,

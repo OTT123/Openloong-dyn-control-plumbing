@@ -23,7 +23,8 @@ in any style, to contribute to the advancement of the community.
 char error[1000] = "Could not load binary model";
 mjModel *mj_model = mj_loadXML("../models/go2/scene.xml", 0, error, 1000);
 mjData *mj_data = mj_makeData(mj_model);
-double Trajectory(double phase, double hei, double len, double phi);
+// 0 for FLRR st(1001), 1 for FRRL st(0110)
+int check_gait_state(const Eigen::VectorXi &foot_state);
 //************************
 // main function
 int main(int argc, const char **argv) {
@@ -32,13 +33,13 @@ int main(int argc, const char **argv) {
   MJ_Interface mj_interface(mj_model, mj_data); // data interface for Mujoco
   Pin_KinDyn kinDynSolver(
       "../models/go2/go2_description.urdf"); // kinematics and dynamics solver
-  DataBus RobotState(kinDynSolver.model_nv); // data bus
+  DataBus RobotState(kinDynSolver.model_nv_); // data bus
   PVT_Ctr pvtCtr(mj_model->opt.timestep,
                  "../common/joint_ctrl_config.json"); // PVT joint control
   DataLogger logger("../record/datalog.log");         // data logger
 
   // variables ini
-  int model_nv = kinDynSolver.model_nv;
+  int model_nv = kinDynSolver.model_nv_;
 
   // ini position and posture for foot-end
   std::vector<double> motors_pos_des(model_nv - 6, 0);
@@ -60,17 +61,17 @@ int main(int argc, const char **argv) {
   uiController.createWindow("Demo", false);
 
   // 这里尝试匀速直线运动的对角步态
+  // double time_swing = 0.25;
   double time_swing = 0.25;
   double phi = 0.0;
-  const double foot_height = 0.1;
+  const double foot_height = 0.05;
   const double stand_legLength = 0.3;
 
   // some const param for go2
   double body_radius = 0.24;
-  double body_theta = 0.633; // rad
+  const double body_theta = 0.633; // rad
   Eigen::VectorXi foot_contact_state =
-      Eigen::VectorXi::Zero(4);     // FL, FR, RL, RR
-  foot_contact_state << 1, 0, 0, 1; // 1 for stance
+      Eigen::VectorXi::Zero(4); // FL, FR, RL, RR
   bool is_init = false;
   Eigen::Vector3d swingStartPos_W[2];  // 规定第一个为F，第二个为R
   Eigen::Vector3d stanceStartPos_W[2]; // 规定第一个为F，第二个为R
@@ -84,7 +85,7 @@ int main(int argc, const char **argv) {
 
       simTime = mj_data->time;
       double time = simTime - simstart;
-      printf("-------------%.3f s, phi= %.3f------------\n", simTime, phi);
+
       // read sensor
       mj_interface.updateSensorValues();
       mj_interface.dataBusWrite(RobotState);
@@ -116,33 +117,26 @@ int main(int argc, const char **argv) {
         base_vel_des[5] = 0.0;
         double dPhi = 1.0 / time_swing * mj_model->opt.timestep;
         phi += dPhi;
-        // 假设是FL, RR先为支撑腿
+        // 初始化 假设FR， RL先动
         if (!is_init) {
           is_init = true;
-          if (foot_contact_state ==
-              (Eigen::VectorXi(4) << 1, 0, 0, 1).finished()) {
-            swingStartPos_W[0] = RobotState.FR_foot_pos_W;
-            swingStartPos_W[1] = RobotState.RL_foot_pos_W;
-            stanceStartPos_W[0] = RobotState.FL_foot_pos_W;
-            stanceStartPos_W[1] = RobotState.RR_foot_pos_W;
-            // swingStartPos_W[0][2] = 0.0;
-            // swingStartPos_W[1][2] = 0.0;
-            // stanceStartPos_W[0][2] = 0.0;
-            // stanceStartPos_W[1][2] = 0.0;
-            foot_contact_state << 1, 0, 0, 1;
-          } else {
-            swingStartPos_W[0] = RobotState.FL_foot_pos_W;
-            swingStartPos_W[1] = RobotState.RR_foot_pos_W;
-            stanceStartPos_W[0] = RobotState.FR_foot_pos_W;
-            stanceStartPos_W[1] = RobotState.RL_foot_pos_W;
-            // swingStartPos_W[0][2] = 0.0;
-            // swingStartPos_W[1][2] = 0.0;
-            // stanceStartPos_W[0][2] = 0.0;
-            // stanceStartPos_W[1][2] = 0.0;
-            foot_contact_state << 0, 1, 1, 0;
-          }
+          swingStartPos_W[0] = RobotState.FR_foot_pos_W;
+          swingStartPos_W[1] = RobotState.RL_foot_pos_W;
+          stanceStartPos_W[0] = RobotState.FL_foot_pos_W;
+          stanceStartPos_W[1] = RobotState.RR_foot_pos_W;
+          foot_contact_state << 1, 0, 0, 1;
         }
-        // 切换
+        ////////////
+        // switch //
+        ////////////
+        Eigen::VectorXd tauAll = Eigen::VectorXd::Zero(model_nv);
+        Eigen::VectorXd torJoint = Eigen::VectorXd::Zero(model_nv - 6);
+        for (int i = 0; i < model_nv - 6; i++) {
+          torJoint[i] = RobotState.motors_tor_cur[i];
+        }
+        tauAll = Eigen::VectorXd::Zero(model_nv);
+        tauAll.block(6, 0, model_nv - 6, 1) = torJoint;
+
         if (foot_contact_state ==
                 (Eigen::VectorXi(4) << 1, 0, 0, 1).finished() &&
             phi >= 1.0 - dPhi) {
@@ -199,50 +193,60 @@ int main(int argc, const char **argv) {
                   0.5 * omegaZ_W * time_swing +
                   kp_wz * (omegaZ_W - base_vel_des[2]);
         Eigen::Vector3d temp_rot;
-        if (foot_contact_state ==
-            (Eigen::VectorXi(4) << 1, 0, 0, 1).finished()) {
+        if (check_gait_state(foot_contact_state) == 0) {
           // for swing FR
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
-          posDes_W[1] = RobotState.base_pos + body_radius * temp_rot +
-                        KP * (RobotState.base_vel - base_vel_des.head(3)) +
-                        0.5 * time_swing * RobotState.base_vel +
-                        RobotState.base_vel * (1 - phi) * time_swing;
+          posDes_W[1] =
+              RobotState.base_pos + body_radius * temp_rot +
+              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
+              0.5 * time_swing * RobotState.base_vel +
+              RobotState.base_vel * (1 - phi) * time_swing;
           // for swing RL
           theta_F += 3.1415; // RL theta_F
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
-          posDes_W[2] = RobotState.base_pos + body_radius * temp_rot +
-                        KP * (RobotState.base_vel - base_vel_des.head(3)) +
-                        0.5 * time_swing * RobotState.base_vel +
-                        RobotState.base_vel * (1 - phi) * time_swing;
-          posDes_W[1][2] = RobotState.base_pos[2] - stand_legLength;
-          posDes_W[2][2] = RobotState.base_pos[2] - stand_legLength;
+          posDes_W[2] =
+              RobotState.base_pos + body_radius * temp_rot +
+              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
+              0.5 * time_swing * RobotState.base_vel +
+              RobotState.base_vel * (1 - phi) * time_swing;
+          posDes_W[1][2] = RobotState.FR_thigh_pos_W[2] - stand_legLength;
+          posDes_W[2][2] = RobotState.RL_thigh_pos_W[2] - stand_legLength;
+          // posDes_W[1][2] = 0.0;
+          // posDes_W[2][2] = 0.0;
           posDes_W[0] = stanceStartPos_W[0];
           posDes_W[3] = stanceStartPos_W[1];
 
-        } else if (foot_contact_state ==
-                   (Eigen::VectorXi(4) << 0, 1, 1, 0).finished()) {
+        } else if (check_gait_state(foot_contact_state) == 1) {
           theta_F += 2 * body_theta; // FL theta_F
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
-          posDes_W[0] = RobotState.base_pos + body_radius * temp_rot +
-                        KP * (RobotState.base_vel - base_vel_des.head(3)) +
-                        0.5 * time_swing * RobotState.base_vel +
-                        RobotState.base_vel * (1 - phi) * time_swing;
+          posDes_W[0] =
+              RobotState.base_pos + body_radius * temp_rot +
+              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
+              0.5 * time_swing * RobotState.base_vel +
+              RobotState.base_vel * (1 - phi) * time_swing;
+          std::cout << "theta F= " << theta_F << std::endl;
+          std::cout << "omgZ = " << omegaZ_W << std::endl;
+          PrintVecMat("test body_radius * temp_rot", body_radius * temp_rot);
           theta_F += 3.1415; // for RR
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
-          posDes_W[3] = RobotState.base_pos + body_radius * temp_rot +
-                        KP * (RobotState.base_vel - base_vel_des.head(3)) +
-                        0.5 * time_swing * RobotState.base_vel +
-                        RobotState.base_vel * (1 - phi) * time_swing;
-          posDes_W[0][2] = RobotState.base_pos[2] - stand_legLength;
-          posDes_W[3][2] = RobotState.base_pos[2] - stand_legLength;
+          posDes_W[3] =
+              RobotState.base_pos + body_radius * temp_rot +
+              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
+              0.5 * time_swing * RobotState.base_vel +
+              RobotState.base_vel * (1 - phi) * time_swing;
+          std::cout << "theta F= " << theta_F << std::endl;
+          PrintVecMat("test body_radius * temp_rot", body_radius * temp_rot);
+          posDes_W[0][2] = RobotState.FL_thigh_pos_W[2] - stand_legLength;
+          posDes_W[3][2] = RobotState.RR_thigh_pos_W[2] - stand_legLength;
+          // posDes_W[0][2] = 0.0;
+          // posDes_W[3][2] = 0.0;
           posDes_W[1] = stanceStartPos_W[0];
           posDes_W[2] = stanceStartPos_W[1];
         }
 
         Eigen::Vector3d pDesCur[4];
         if (phi < 1.0) {
-          if (foot_contact_state ==
-              (Eigen::VectorXi(4) << 1, 0, 0, 1).finished()) {
+          if (check_gait_state(foot_contact_state) == 0) {
             pDesCur[1][0] = swingStartPos_W[0][0] +
                             (posDes_W[1][0] - swingStartPos_W[0][0]) /
                                 (2 * 3.1415) *
@@ -271,8 +275,7 @@ int main(int argc, const char **argv) {
             ;
             pDesCur[0] = posDes_W[0];
             pDesCur[3] = posDes_W[3];
-          } else if (foot_contact_state ==
-                     (Eigen::VectorXi(4) << 0, 1, 1, 0).finished()) {
+          } else if (check_gait_state(foot_contact_state) == 1) {
             pDesCur[0][0] = swingStartPos_W[0][0] +
                             (posDes_W[0][0] - swingStartPos_W[0][0]) /
                                 (2 * 3.1415) *
@@ -281,8 +284,8 @@ int main(int argc, const char **argv) {
                             (posDes_W[0][1] - swingStartPos_W[0][1]) /
                                 (2 * 3.1415) *
                                 (2 * 3.1415 * phi - sin(2 * 3.1415 * phi));
-            pDesCur[0][2] =
-                swingStartPos_W[0][2] + 0.1 * 0.5 * (1 - cos(2 * 3.1415 * phi));
+            pDesCur[0][2] = swingStartPos_W[0][2] +
+                            foot_height * 0.5 * (1 - cos(2 * 3.1415 * phi));
 
             pDesCur[3][0] = swingStartPos_W[1][0] +
                             (posDes_W[3][0] - swingStartPos_W[1][0]) /
@@ -292,8 +295,8 @@ int main(int argc, const char **argv) {
                             (posDes_W[3][1] - swingStartPos_W[1][1]) /
                                 (2 * 3.1415) *
                                 (2 * 3.1415 * phi - sin(2 * 3.1415 * phi));
-            pDesCur[3][2] =
-                swingStartPos_W[1][2] + 0.1 * 0.5 * (1 - cos(2 * 3.1415 * phi));
+            pDesCur[3][2] = swingStartPos_W[1][2] +
+                            foot_height * 0.5 * (1 - cos(2 * 3.1415 * phi));
             pDesCur[1] = stanceStartPos_W[0];
             pDesCur[2] = stanceStartPos_W[1];
           }
@@ -355,12 +358,16 @@ int main(int argc, const char **argv) {
         tau_fd = tau_FL + tau_FR + tau_RL + tau_RR;
         auto tau_std = eigen2std(tau_fd);
         for (int i = 0; i < 12; i++) {
-          tau_std.at(i) += RobotState.motors_tor_out.at(i);
+          tau_std.at(i) += RobotState.motors_tor_out.at(i) * 0.0 + tau_fd[i];
         }
         mj_interface.setMotorsTorque(tau_std);
+
+        printf("-------------%.3f s, phi= %.3f------------\n", simTime, phi);
         std::cout << "foot_contact_state= " << foot_contact_state.transpose()
                   << std::endl;
-        PrintVecMat("base pos ", RobotState.base_pos);
+        PrintVecMat("base pos   ", RobotState.base_pos);
+        PrintVecMat("base vel   ", RobotState.base_vel);
+        PrintVecMat("base omega ", RobotState.base_omega_W);
         PrintVecMat("swingStartPos_W 0 ", swingStartPos_W[0]);
         PrintVecMat("swingStartPos_W 1 ", swingStartPos_W[1]);
         PrintVecMat("stanceStartPos_W 0", stanceStartPos_W[0]);
@@ -383,9 +390,13 @@ int main(int argc, const char **argv) {
         PrintVecMat("RL_foot_pos_L", RobotState.RL_foot_pos_L);
         PrintVecMat("RR_foot_pos_L", RobotState.RR_foot_pos_L);
         PrintVecMat("Ik error", Qres.err);
-        PrintVecMat("Qres", Qres.jointPosRes);
-        PrintVecMat("Qrel", RobotState.q.tail(model_nv - 6));
+        PrintVecMat("Qres    ", Qres.jointPosRes);
+        PrintVecMat("Qrel    ", RobotState.q.tail(model_nv - 6));
         std::cout << Qres.status << std::endl;
+        std::cout << "is contact = " << RobotState.foot_is_contact.transpose()
+                  << std::endl;
+
+        PrintVecMat(" contact FL force= ", RobotState.foot_force_sensor[0]);
       }
       if (mj_data->time >= simEndTime) {
         break;
@@ -404,26 +415,12 @@ int main(int argc, const char **argv) {
   return 0;
 }
 
-double Trajectory(double phase, double hei, double len, double phi) {
-  Bezier_1D Bswpid;
-  double para0 = 5, para1 = 3;
-  for (int i = 0; i < para0; i++) {
-    Bswpid.P.push_back(0.0);
+int check_gait_state(const Eigen::VectorXi &foot_state) {
+  if (foot_state == (Eigen::VectorXi(4) << 1, 0, 0, 1).finished()) {
+    return 0;
   }
-  for (int i = 0; i < para1; i++) {
-    Bswpid.P.push_back(1.0);
+  if (foot_state == (Eigen::VectorXi(4) << 0, 1, 1, 0).finished()) {
+    return 1;
   }
-
-  double output;
-  if (phi < phase) {
-    output = hei * Bswpid.getOut(phi / phase);
-  } else {
-    double s = Bswpid.getOut((1.4 - phi) / (1.4 - phase));
-    if (s > 0) {
-      output = hei * s + len * (1.0 - s);
-    } else {
-      output = len;
-    }
-  }
-  return output;
+  return -1;
 }

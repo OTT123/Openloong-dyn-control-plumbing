@@ -76,9 +76,6 @@ add_library(core ${SOURCES})
 target_link_libraries(core ${sysCoreLibs} pthread)
 
 #生成仿真可执行文件
-add_executable(test_go2_sim demo/test_go2_sim.cpp)
-target_link_libraries(test_go2_sim core mujoco ${sysSimLibs} dl)
-
 add_executable(float_control demo/float_control.cpp)
 target_link_libraries(float_control core mujoco ${sysSimLibs} dl)
 
@@ -87,3 +84,9 @@ target_link_libraries(test_dyn core mujoco ${sysSimLibs} dl)
 
 add_executable(test_simple_gait demo/test_simple_gait.cpp)
 target_link_libraries(test_simple_gait core mujoco ${sysSimLibs} dl)
+
+add_executable(control_loop_template demo/control_loop_template.cpp)
+target_link_libraries(control_loop_template core mujoco ${sysSimLibs} dl)
+
+add_executable(VMC_control demo/VMC_control.cpp)
+target_link_libraries(VMC_control core mujoco ${sysSimLibs} dl)

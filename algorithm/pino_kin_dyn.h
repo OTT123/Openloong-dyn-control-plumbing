@@ -47,7 +47,8 @@ public:
   std::string urdf_path_;
   pinocchio::Model model_go2_;
   pinocchio::Model model_go2_fixed_;
-  int model_nv;
+  int model_nv_;
+  int fixed_model_nv_;
 
   Eigen::VectorXd q_, dq_, ddq_;
   Eigen::Matrix3d Rcur_;
@@ -62,10 +63,14 @@ public:
       RR_calf_joint_;
   pinocchio::JointIndex FL_thigh_joint_, FR_thigh_joint_, RL_thigh_joint_,
       RR_thigh_joint_;
+  pinocchio::JointIndex FL_hip_joint_, FR_hip_joint_, RL_hip_joint_,
+      RR_hip_joint_;
   pinocchio::JointIndex FL_calf_joint_fixed_, FR_calf_joint_fixed_,
       RL_calf_joint_fixed_, RR_calf_joint_fixed_;
   pinocchio::JointIndex FL_thigh_joint_fixed_, FR_thigh_joint_fixed_,
       RL_thigh_joint_fixed_, RR_thigh_joint_fixed_;
+  pinocchio::JointIndex FL_hip_joint_fixed_, FR_hip_joint_fixed_,
+      RL_hip_joint_fixed_, RR_hip_joint_fixed_;
 
   pinocchio::FrameIndex FL_foot_frame_, FR_foot_frame_, RL_foot_frame_,
       RR_foot_frame_;
@@ -74,6 +79,8 @@ public:
 
   Eigen::Matrix<double, 6, -1> J_FL_foot_, J_FR_foot_, J_RL_foot_, J_RR_foot_,
       J_base_, J_FL_thigh_, J_FR_thigh_, J_RL_thigh_, J_RR_thigh_;
+  Eigen::Matrix<double, 6, -1> J_FL_foot_body_, J_FR_foot_body_,
+      J_RL_foot_body_, J_RR_foot_body_;
   Eigen::Matrix<double, 6, -1> dJ_FL_foot_, dJ_FR_foot_, dJ_RL_foot_,
       dJ_RR_foot_, dJ_base_, dJ_FL_thigh_, dJ_FR_thigh_, dJ_RL_thigh_,
       dJ_RR_thigh_;
@@ -88,9 +95,11 @@ public:
 
   Eigen::Vector3d FL_thigh_pos_W_, FR_thigh_pos_W_, RL_thigh_pos_W_,
       RR_thigh_pos_W_;
+  Eigen::Vector3d FL_hip_pos_W_, FR_hip_pos_W_, RL_hip_pos_W_, RR_hip_pos_W_;
   Eigen::Vector3d FL_thigh_pos_L_, FR_thigh_pos_L_, RL_thigh_pos_L_,
       RR_thigh_pos_L_;
-
+  Eigen::Vector3d FL_hip_pos_L_, FR_hip_pos_L_, RL_hip_pos_L_,
+      RR_hip_pos_L_;
   Eigen::Matrix3d FL_foot_rot_W_, FR_foot_rot_W_, RL_foot_rot_W_,
       RR_foot_rot_W_; // in world frame
   Eigen::Matrix3d FL_thigh_rot_W_, FR_thigh_rot_W_, RL_thigh_rot_W_,

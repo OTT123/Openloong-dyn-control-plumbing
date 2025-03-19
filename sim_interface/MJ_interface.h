@@ -30,6 +30,8 @@ public:
     const std::vector<std::string> JointName={ "FL_hip_joint","FL_thigh_joint", "FL_calf_joint", "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint", "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint"}; 
     const std::vector<std::string> MotorName={ "FL_hip","FL_thigh", "FL_calf", "FR_hip", "FR_thigh", "FR_calf", "RL_hip", "RL_thigh", "RL_calf", "RR_hip", "RR_thigh", "RR_calf"}; 
     const std::string baseName="base_link";
+    const std::vector<std::string> FootName = {"FL", "FR", "RL", "RR"}; // get from xml geom
+    std::vector<int> foot_geom_ids;
     const std::string orientationSensorName="imu_quat"; // in quat, mujoco order is [w,x,y,z], here we rearrange to [x,y,z,w]
     const std::string velSensorName="frame_vel";
     const std::string gyroSensorName="imu_gyro";

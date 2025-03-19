@@ -8,6 +8,8 @@
 #include "pinocchio/algorithm/kinematics.hpp"
 #include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio/parsers/urdf.hpp"
+
+// 这个文件用于测试
 int main(int argc, char const *argv[]) {
   std::string urdf_pathIn = "../models/go2/go2_description.urdf";
   pinocchio::Model model_go2_fixed_;
