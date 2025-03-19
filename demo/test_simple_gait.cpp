@@ -198,17 +198,17 @@ int main(int argc, const char **argv) {
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
           posDes_W[1] =
               RobotState.base_pos + body_radius * temp_rot +
-              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
-              0.5 * time_swing * RobotState.base_vel +
-              RobotState.base_vel * (1 - phi) * time_swing;
+              KP * (base_vel_des.head(3) - RobotState.base_vel_W) * (1) +
+              0.5 * time_swing * RobotState.base_vel_W +
+              RobotState.base_vel_W * (1 - phi) * time_swing;
           // for swing RL
           theta_F += 3.1415; // RL theta_F
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
           posDes_W[2] =
               RobotState.base_pos + body_radius * temp_rot +
-              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
-              0.5 * time_swing * RobotState.base_vel +
-              RobotState.base_vel * (1 - phi) * time_swing;
+              KP * (base_vel_des.head(3) - RobotState.base_vel_W) * (1) +
+              0.5 * time_swing * RobotState.base_vel_W +
+              RobotState.base_vel_W * (1 - phi) * time_swing;
           posDes_W[1][2] = RobotState.FR_thigh_pos_W[2] - stand_legLength;
           posDes_W[2][2] = RobotState.RL_thigh_pos_W[2] - stand_legLength;
           // posDes_W[1][2] = 0.0;
@@ -221,9 +221,9 @@ int main(int argc, const char **argv) {
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
           posDes_W[0] =
               RobotState.base_pos + body_radius * temp_rot +
-              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
-              0.5 * time_swing * RobotState.base_vel +
-              RobotState.base_vel * (1 - phi) * time_swing;
+              KP * (base_vel_des.head(3) - RobotState.base_vel_W) * (1) +
+              0.5 * time_swing * RobotState.base_vel_W +
+              RobotState.base_vel_W * (1 - phi) * time_swing;
           std::cout << "theta F= " << theta_F << std::endl;
           std::cout << "omgZ = " << omegaZ_W << std::endl;
           PrintVecMat("test body_radius * temp_rot", body_radius * temp_rot);
@@ -231,9 +231,9 @@ int main(int argc, const char **argv) {
           temp_rot << cos(theta_F), sin(theta_F), 0.0;
           posDes_W[3] =
               RobotState.base_pos + body_radius * temp_rot +
-              KP * (base_vel_des.head(3) - RobotState.base_vel) * (1) +
-              0.5 * time_swing * RobotState.base_vel +
-              RobotState.base_vel * (1 - phi) * time_swing;
+              KP * (base_vel_des.head(3) - RobotState.base_vel_W) * (1) +
+              0.5 * time_swing * RobotState.base_vel_W +
+              RobotState.base_vel_W * (1 - phi) * time_swing;
           std::cout << "theta F= " << theta_F << std::endl;
           PrintVecMat("test body_radius * temp_rot", body_radius * temp_rot);
           posDes_W[0][2] = RobotState.FL_thigh_pos_W[2] - stand_legLength;
@@ -366,7 +366,7 @@ int main(int argc, const char **argv) {
         std::cout << "foot_contact_state= " << foot_contact_state.transpose()
                   << std::endl;
         PrintVecMat("base pos   ", RobotState.base_pos);
-        PrintVecMat("base vel   ", RobotState.base_vel);
+        PrintVecMat("base vel   ", RobotState.base_vel_W);
         PrintVecMat("base omega ", RobotState.base_omega_W);
         PrintVecMat("swingStartPos_W 0 ", swingStartPos_W[0]);
         PrintVecMat("swingStartPos_W 1 ", swingStartPos_W[1]);

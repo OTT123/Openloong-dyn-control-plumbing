@@ -128,6 +128,9 @@ void MJ_Interface::dataBusWrite(DataBus &busIn) {
   busIn.baseLinVel[0] = baseLinVel[0];
   busIn.baseLinVel[1] = baseLinVel[1];
   busIn.baseLinVel[2] = baseLinVel[2];
+  busIn.base_vel_W[0] = baseLinVel[0];
+  busIn.base_vel_W[1] = baseLinVel[1];
+  busIn.base_vel_W[2] = baseLinVel[2];
   busIn.baseAcc[0] = baseAcc[0];
   busIn.baseAcc[1] = baseAcc[1];
   busIn.baseAcc[2] = baseAcc[2];

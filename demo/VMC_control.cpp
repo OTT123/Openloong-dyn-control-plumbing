@@ -59,7 +59,7 @@ int main(int argc, const char **argv) {
   const double Kp_tau_y = 10000.0;
   const double Kd_tau_y = 20.0;
 
-  const double Kd_tau_z = 200.0;
+  const double Kd_tau_z = 100.0;
 
   const double Kd_f_x = 1000.0;
 
@@ -132,7 +132,7 @@ int main(int argc, const char **argv) {
         // set target base vel, 机体坐标系
         // vx, vy, vz, wx, wy, wz
         Eigen::VectorXd base_vel_des = Eigen::VectorXd::Zero(6);
-        base_vel_des[0] = 0.0;
+        base_vel_des[0] = 0.1;
         base_vel_des[5] = 0.0;
         double h_des = 0.3;
 
@@ -226,8 +226,7 @@ int main(int argc, const char **argv) {
         pre_h = h;
         std::cout << "h=   " << h << ", dh= " << dh << std::endl;
         std::cout << "psi= " << psi << ", dpsi= " << dpsi << std::endl;
-        auto base_vel_L = RobotState.base_rot.transpose() * RobotState.base_vel;
-
+        Eigen::Vector3d base_vel_L = RobotState.base_rot.transpose() * RobotState.base_vel_W;
         double Tx = -(Kp_tau_x * RobotState.base_rpy[0] +
                       Kd_tau_x * RobotState.base_omega_L[0]);
         double Ty = -(Kp_tau_y * psi + Kd_tau_y * dpsi);
@@ -307,7 +306,7 @@ int main(int argc, const char **argv) {
         double xT = base_vel_des[0] * Ts / 2.0;
         double yT =
             base_vel_L[1] * Ts / 2.0 + 0.02 * (base_vel_L[1] - base_vel_des[1]);
-
+        std::cout<<"yT= "<<yT<<std::endl;
         Eigen::Vector3d sw_foot_pos_cur_des[2];
         Eigen::Vector3d sw_foot_pos_cur_des_pre[2];
         Eigen::Vector3d sw_foot_vel_cur_des[2];
@@ -369,6 +368,7 @@ int main(int argc, const char **argv) {
                   << std::endl;
         std::cout << "is contact = " << RobotState.foot_is_contact.transpose()
                   << std::endl;
+        PrintVecMat("base_vel_L", base_vel_L);
         PrintVecMat(" tau_st ", tau_st);
         PrintVecMat(" tau_sw ", tau_sw);
         PrintVecMat(" F ", F);

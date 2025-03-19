@@ -1,0 +1,3 @@
+Wed Mar 19 16:40:18 2025
+WARNING: mju_openResource: unknown file '../models/go2/scene.xml'
+

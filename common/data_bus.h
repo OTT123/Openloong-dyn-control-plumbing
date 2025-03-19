@@ -42,6 +42,7 @@ struct DataBus
     std::vector<double> motors_tor_cur;
     // Eigen::VectorXd FL_est, FR_est;
     Eigen::VectorXd FL_Fest, FR_Fest, RL_Fest, RR_Fest; // 四足的足端力估计
+    Eigen::Vector3d base_vel_W;
     bool isdqIni;
 
     //////////////////
@@ -70,7 +71,7 @@ struct DataBus
     Eigen::Vector3d FL_foot_pos_L_cmd, FR_foot_pos_L_cmd, RL_foot_pos_L_cmd, RR_foot_pos_L_cmd;
     Eigen::Matrix3d FL_foot_rot_L_cmd, FR_foot_rot_L_cmd, RL_foot_rot_L_cmd, RR_foot_rot_L_cmd;
     // base
-    Eigen::Vector3d base_pos, base_vel;// base to world
+    Eigen::Vector3d base_pos;// base to world
     Eigen::Matrix3d base_rot;   // base to world
     // thigh
     Eigen::Matrix3d FL_thigh_rot_W, FR_thigh_rot_W, RL_thigh_rot_W, RR_thigh_rot_W;
@@ -224,7 +225,6 @@ struct DataBus
         js_omega_des.setZero();
         js_vel_des.setZero();
         motionState = Stand;
-        base_vel << 0, 0, 0;
     };
 
     // update q according to sensor values, must update sensor values before
